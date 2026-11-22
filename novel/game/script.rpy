@@ -1,11 +1,17 @@
 # Сценарий игры распологается в этом файле.
 
-# Определение персонажей игры. Аргумент color окрашивает имя персонажа.
+default all_score = 0
+default vlad_score = 0
+default ev_score = 0
+default maks_score = 0
+default grig_score = 0
 
 define e = Character("Владимир Иванович", color="#1d1c1c")
 define ee = Character("Евгений Георгиевич", color="#384473")
 define eee = Character("Максим Дмитриевич", color="#23873e")
-define you = Character("Игрок", color="#c61313")
+default dif = 0
+default player_name = "Игрок"
+define you = Character("[player_name]", color="#c61313")
 define grig = Character("Григорий Яковлевич", color="#20d0d0")
 define company_rep = Character("Представитель компании", color="#73ef15")
 define schoolboy = Character("Школьник", color="#ff009d")
@@ -16,17 +22,28 @@ define research_lead = Character("Руководитель исследован�
 
 label start:
 
-    # Показать фон. По умолчанию будет использовано изображение-заглушка,
-    # но вы можете добавить файл с названием "bg room.png" или "bg room.jpg"
-    # в папку images, чтобы показать его.
+   
+    menu:
+        "Выберите уровень сложности миниигр."
+        "Лёгкий.":
+            $ dif = 1
+        "Средний":
+            $ dif = 2
+        "Сложный":
+            $ dif = 3
 
-
-    # Показать спрайт персонажа. Будет использовано изображение-заглушка,
-    # но вы можете заменить его, добавив файл с названием
-    # "eileen happy.png" в папку images.
+    
     "..."
 
     scene black with Dissolve(3)
+    python:
+        
+        player_name = renpy.input("Введите ваше имя:", default="Алексей", length=20)
+        player_name = player_name.strip()
+
+        
+        if not player_name:
+            player_name = "Игрок"
     "Кажется, ещё недавно я поступал на прикладную математику, толком не представляя, чем хочу заниматься после университета. "
     "За бакалавриат успел привыкнуть к бесконечным лекциям, дедлайнам и даже находил время на жизнь."
     "Математика всегда давалась мне легче многих других вещей."
@@ -82,7 +99,7 @@ label start:
     "Сегодня разбираем задачу оптимального распределения ресурсов. Вроде бы всё знакомо: ограничения, целевая функция. Но Евгений Георгиевич смотрит на неё прежде всего с прикладной стороны."
     "После пары он окликает меня:"
 
-    ee "— *Имя*, на минуту. Я помню вашу дипломную. Есть у меня одно исследование на смежную тему. Возьмите, посмотрите."
+    ee "— [player_name], на минуту. Я помню вашу дипломную. Есть у меня одно исследование на смежную тему. Возьмите, посмотрите."
     ee  "Там есть пара любопытных мест… и пара сомнительных. Будет полезно понять, где именно сомнительных."
 
     "Он передаёт несколько распечатанных страниц, кивает и покидает аудиторию."
@@ -109,10 +126,7 @@ label start:
 
 
 
-    # Эти операторы отображают реплики в диалоге.
-
-    # Этот оператор завершает игру.
-
+    
     return
 
 label question:
@@ -123,7 +137,7 @@ label question:
     you "То есть хорошая точность сама по себе ещё ничего не гарантирует?"
     eee "Именно. Особенно если есть утечка данных или переобучение."
     "Короткий разговор оказался полезнее, чем я ожидал. Правда, когда я наконец вышел из корпуса, автобус уже скрылся за поворотом."
-
+    $ maks_score += 1
     scene black with Fade(1.5, 1.0, 0.0)
 
     "Несмотря на все попытки, всё же опоздал на автобус."
@@ -283,7 +297,7 @@ label day3:
 init python:
     import random
 
-    # Данные игры: id, заголовок, полный текст
+    
     STUDIES_DATA = (
         (
             "А",
@@ -438,8 +452,6 @@ init python:
                 renpy.restart_interaction()
                 return
 
-
-
             errors = 0
             for s_id, e_id in self.user_links.items():
                 if CORRECT_PAIRS[s_id] != e_id:
@@ -452,9 +464,10 @@ init python:
                 self.result_color = "#69f0ae"
                 self.result_text = u"Ошибок: {0} из 4.\n— Молодец. Как и ожидал, справился нормально. Спасибо, что помог.".format(errors)
                 self.checked = True
+                store.vlad_score += 1  # <-- Используем store. перед именем переменной
             renpy.restart_interaction()
 
-    # Создание экземпляра обязательно должно выполняться на этапе init
+    
     stat_game = StatAnalysisGame()
 
 
@@ -534,15 +547,12 @@ screen stat_analysis():
                     sensitive not stat_game.checked
                     action Function(stat_game.check_answers)
 
-                textbutton "Начать заново":
-                    text_size 18
-                    action Function(stat_game.reset_game)
 
-                if stat_game.checked:
-                    textbutton "Далее":
-                        text_size 18
-                        text_bold True
-                        action Return()
+                
+                textbutton "Далее":
+                    text_size 18
+                    text_bold True
+                    action Return()
 
                 if stat_game.result_text:
                     text stat_game.result_text:
@@ -556,7 +566,7 @@ label static:
     scene black
     "Соотнесите исследования (слева) и объяснения ошибок (справа). Сначала кликните карточку слева, затем её пару справа — или наоборот. Когда все 4 пары собраны, нажимайте «Проверить ответы»."
     call screen stat_analysis
-        # Продолжение сюжета
+        
 
     e "Вот молодец. Балл заработал."
     you "Спасибо, Владимир Иванович!"
@@ -576,88 +586,225 @@ label static:
     "А вокруг нас уже собирается толпа... Но я не из пугливых."
     you "Играем."
 
-    jump card_play
+    init python:
+    # Классические номиналы казиношного Блэкджека (52 карты)
+        VALUES = {
+            "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10,
+            "J": 10, "Q": 10, "K": 10, "A": 11
+        }
+        SUITS = ["♠", "♥", "♦", "♣"]
 
-# 1. Инициализация строго на верхнем уровне (без отступов)
-init python:
-    VALUES = { "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "В": 2, "Д": 3, "К": 4, "Т": 11 } 
-    
-    def create_deck(): 
-        deck = list(VALUES.keys()) * 4 
-        renpy.random.shuffle(deck) 
-        return deck 
+        def create_deck():
+            # Создаём стандартную покерную/казиношную колоду на 52 карты
+            deck = [f"{rank}{suit}" for rank in VALUES.keys() for suit in SUITS]
+            renpy.random.shuffle(deck)
+            return deck
+
+        def get_card_value(card):
+            rank = card[:-1]
+            return VALUES[rank]
+
+        def calc_score(hand):
+            total = sum(get_card_value(card) for card in hand)
+            aces = sum(1 for card in hand if card.startswith("A"))
+            # Гибкий туз: превращается из 11 в 1 при переборе
+            while total > 21 and aces > 0:
+                total -= 10
+                aces -= 1
+            return total
+
+        def is_blackjack(hand):
+            # Натуральный Блэкджек: ровно 21 очко с первых двух карт (Туз + Десятка/Картинка)
+            return len(hand) == 2 and calc_score(hand) == 21
+
+        def draw_card(deck):
+            if len(deck) == 0:
+                renpy.notify("Шуз пуст! Дилер распечатывает новую колоду на 52 карты.")
+                deck.extend(create_deck())
+            return deck.pop()
+
+# Переменные состояния игры
+default deck =[]
+default player_hand =[]
+default dealer_hand =[]
+default round_num = 1
+default max_rounds = 10
+default player_wins = 0
+default dealer_wins = 0
+default draws = 0
+default game_result = ""
+
+# Визуальный интерфейс стола
+screen blackjack_table(hide_dealer=True):
+    add Solid("#0b2e19cc")
+
+    # Верхняя панель
+    frame:
+        xalign 0.5
+        yalign 0.05
+        padding (30, 15)
+        background Solid("#00000088")
+        hbox:
+            spacing 40
+            text "Раунд: [round_num] / [max_rounds]" size 28 color "#ffd700"
+            text "Вы: [player_wins]  |  Владимир Иванович: [dealer_wins]  |  Push (Ничья): [draws]" size 26
+            text "В колоде: [len(deck)] / 52" size 26 color "#aaaaaa"
+
+    # Зона дилера
+    vbox:
+        xalign 0.5
+        yalign 0.25
+        spacing 15
+        text "Дилер: Владимир Иванович" xalign 0.5 size 26 color "#cccccc"
         
-    def calc_score(hand): 
-        total = sum(VALUES[card] for card in hand) 
-        aces = hand.count("Т") 
-        while total > 21 and aces > 0: 
-            total -= 10 
-            aces -= 1 
-        return total 
+        hbox:
+            xalign 0.5
+            spacing 15
+            for i, card in enumerate(dealer_hand):
+                if hide_dealer and i == 1:
+                    frame:
+                        xsize 110 ysize 160
+                        background Solid("#8b0000")
+                        text "🂠" align (0.5, 0.5) size 60 color "#ffffff"
+                else:
+                    $ card_color = "#d32f2f" if ("♥" in card or "♦" in card) else "#111111"
+                    frame:
+                        xsize 110 ysize 160
+                        background Solid("#f5f5f5")
+                        text "[card]" align (0.5, 0.5) size 36 color card_color bold True
 
-default deck = [] 
-default player_hand = [] 
-default dealer_hand = [] 
-default game_result = "" 
+        if hide_dealer:
+            $ first_card = dealer_hand[0] if dealer_hand else ""
+            $ visible_score = get_card_value(first_card) if first_card else 0
+            text "Очки: [visible_score] + ?" xalign 0.5 size 24
+        else:
+            $ d_score = calc_score(dealer_hand)
+            if is_blackjack(dealer_hand):
+                text "BLACKJACK! (21)" xalign 0.5 size 26 color "#ffd700" bold True
+            else:
+                text "Очки: [d_score]" xalign 0.5 size 24 color "#ffd700"
 
-# 2. Сама игра (переходить сюда нужно через jump card_play)
+    # Зона игрока
+    vbox:
+        xalign 0.5
+        yalign 0.65
+        spacing 15
+        $ p_score = calc_score(player_hand)
+        if is_blackjack(player_hand):
+            text "Ваша рука: BLACKJACK! (21)" xalign 0.5 size 28 color "#ffd700" bold True
+        else:
+            text "Ваша рука (Очки: [p_score])" xalign 0.5 size 28 color "#ffffff"
+        
+        hbox:
+            xalign 0.5
+            spacing 15
+            for card in player_hand:
+                $ card_color = "#d32f2f" if ("♥" in card or "♦" in card) else "#111111"
+                frame:
+                    xsize 110 ysize 160
+                    background Solid("#ffffff")
+                    text "[card]" align (0.5, 0.5) size 36 color card_color bold True
+
+# Основной сценарий игры
 label card_play:
-    $ deck = create_deck() 
-    $ player_hand = [deck.pop(), deck.pop()] 
-    $ dealer_hand = [deck.pop()]
+    $ deck = create_deck()
+    $ round_num = 1
+    $ player_wins = 0
+    $ dealer_wins = 0
+    $ draws = 0
 
-    label .player_turn: 
-        $ p_cards_str = ", ".join(player_hand) 
-        $ p_score = calc_score(player_hand) 
-        $ d_cards_str = ", ".join(dealer_hand) 
-        $ d_score = calc_score(dealer_hand) 
-        
-        if p_score >= 21: 
-            jump .check_bust 
+    "Владимир Иванович распечатывает стандартную колоду на 52 карты и профессионально тасует её."
+    "«Играем в классический блэкджек. Десять раздач, отбой в сторону. Дилер стоит на семнадцати»."
+
+    while round_num <= max_rounds:
+        $ player_hand = [draw_card(deck), draw_card(deck)]
+        $ dealer_hand = [draw_card(deck), draw_card(deck)]
+
+        show screen blackjack_table(hide_dealer=True)
+
+        # Проверка на натуральный Блэкджек с раздачи
+        if is_blackjack(player_hand) or is_blackjack(dealer_hand):
+            pause 0.5
+            show screen blackjack_table(hide_dealer=False)
             
-        menu: 
-            "Ваши карты: [p_cards_str] (Очки: [p_score])\nКарта Владимира Ивановича: [d_cards_str] (Очки: [d_score])\n\nВзять карту?"
+            if is_blackjack(player_hand) and is_blackjack(dealer_hand):
+                $ draws += 1
+                "У обоих натуральный Блэкджек! Ничья (Push)."
+            elif is_blackjack(player_hand):
+                $ player_wins += 1
+                "Блэкджек с раздачи! Чистая победа в раунде."
+            else:
+                $ dealer_wins += 1
+                "У Владимира Ивановича Блэкджек с раздачи! Вы проиграли раунд."
+            jump .next_round
 
-            "Взять карту": 
-                $ player_hand.append(deck.pop()) 
-                jump .player_turn 
+        # Ход игрока
+        label .player_turn:
+            $ p_score = calc_score(player_hand)
 
-            "Хватит": 
-                jump .dealer_turn 
+            if p_score > 21:
+                show screen blackjack_table(hide_dealer=False)
+                $ dealer_wins += 1
+                "Перебор ([p_score])! Вы проиграли раздачу."
+                jump .next_round
+            elif p_score == 21:
+                "21 очко! Передаем ход дилеру."
+                jump .dealer_turn
 
-    label .check_bust: 
-        $ p_cards_str = ", ".join(player_hand) 
-        $ p_score = calc_score(player_hand) 
-    
-        if p_score > 21: 
-            $ game_result = "lose" 
-            "Ваши карты: [p_cards_str] (Очки: [p_score]). Перебор! Вы проиграли." 
-            # Вместо return прыгаем на финальную метку
-            jump .end_game 
+            menu:
+                "Ещё (Hit)":
+                    $ player_hand.append(draw_card(deck))
+                    jump .player_turn
+                "Хватит (Stand)":
+                    jump .dealer_turn
 
-    label .dealer_turn: 
-        while calc_score(dealer_hand) < 17: 
-            $ dealer_hand.append(deck.pop()) 
+        # Ход дилера
+        label .dealer_turn:
+            show screen blackjack_table(hide_dealer=False)
+            pause 0.6
 
-        $ p_score = calc_score(player_hand) 
-        $ d_cards_str = ", ".join(dealer_hand) 
-        $ d_score = calc_score(dealer_hand)
+            while calc_score(dealer_hand) < 17:
+                $ dealer_hand.append(draw_card(deck))
+                pause 0.5
 
-        "Карты дилера: [d_cards_str] (Очки: [d_score])." 
+            $ p_score = calc_score(player_hand)
+            $ d_score = calc_score(dealer_hand)
 
-        if d_score > 21 or p_score > d_score: 
-            $ game_result = "win" 
-            "Вы выиграли!" 
-        elif p_score < d_score: 
-            $ game_result = "lose" 
-            "Вы проиграли." 
-        else: 
-            $ game_result = "draw"
-            "Ничья." # Перенесено на новую строку
+            if d_score > 21:
+                $ player_wins += 1
+                "У дилера перебор ([d_score])! Вы выиграли раунд."
+            elif p_score > d_score:
+                $ player_wins += 1
+                "Вы победили ([p_score] против [d_score])!"
+            elif p_score < d_score:
+                $ dealer_wins += 1
+                "Дилер забрал раунд ([d_score] против [p_score])."
+            else:
+                $ draws += 1
+                "Ровно! По [p_score] очков — Push (ничья)."
 
-    # 3. Единая точка выхода из мини-игры
-    label .end_game:
-        jump day3_evening    
+        label .next_round:
+            $ round_num += 1
+
+    hide screen blackjack_table
+
+    "Серия из 10 раздач окончена. Счет — Вы: [player_wins], Владимир Иванович: [dealer_wins], Ничьи: [draws]."
+
+    if player_wins > dealer_wins:
+        $ game_result = "win"
+        "Владимир Иванович складывает карты: «Отличная игра. Ты меня переиграл»."
+        $ vlad_score +=1
+    elif player_wins < dealer_wins:
+        $ game_result = "lose"
+        "«Казино всегда в плюсе», — усмехается Владимир Иванович."
+        $ vlad_score+=0
+    else:
+        $ game_result = "draw"
+        "«Ничья по итогам десяти раздач. Достойно»."
+        $ vlad_score+=0
+
+    jump day3_evening
+
 
 label day3_evening:
     e "Это была неплохая игра. Увидел силу теории вероятностей?"
@@ -712,7 +859,17 @@ label day4_interview:
     company_rep "Понятно. У нас, кстати, бывают похожие задачи. Только обычно заказчику не так важно, насколько красивую модель вы построили. Ему нужно понимать, что с ней делать."
     "Он открывает ноутбук."
     company_rep "Давайте попробуем небольшую задачу. Представим, что у нас есть ограниченное количество ресурсов и несколько направлений, куда их можно распределить. Нужно найти решение, которое даст наилучший результат."
-
+    
+    if dif == 1:
+        $ pipe_board.new_game(max_moves=20)
+    
+    if dif == 2:
+        $ pipe_board.new_game(max_moves=15)
+    
+    if dif == 3:
+        $ pipe_board.new_game(max_moves=10)
+    "Собери трубу от зелёного входа (слева внизу) к красному выходу (справа вверху). У тебя есть [pipe_board.max_moves] ходов."
+    call screen plumber
     jump vodop
 
 init python:
@@ -720,16 +877,16 @@ init python:
     from collections import deque
     import pygame_sdl2 as pygame
 
-    # Направления: 0 - Верх, 1 - Право, 2 - Низ, 3 - Лево
+    
     DIRS = [(-1, 0), (0, 1), (1, 0), (0, -1)]
     OPPOSITE = {0: 2, 1: 3, 2: 0, 3: 1}
 
-    # Базовые типы труб (открытые стороны)
+    
     PIPE_SHAPES = {
-        'I': (0, 2),        # Прямая (верх-низ)
-        'L': (0, 1),        # Уголок (верх-право)
-        'T': (0, 1, 2),     # Тройник (верх-право-низ)
-        '+': (0, 1, 2, 3),  # Крестовина (все стороны)
+        'I': (0, 2),        
+        'L': (0, 1),        
+        'T': (0, 1, 2),     
+        '+': (0, 1, 2, 3),  
     }
 
     class PipeBoard(renpy.Displayable):
@@ -755,7 +912,7 @@ init python:
             renpy.restart_interaction()
 
         def generate_solvable_grid(self):
-            # Создаем случайный гарантированный путь из (4, 0) в (0, 4)
+            
             while True:
                 path = [(self.size - 1, 0)]
                 visited = set(path)
@@ -774,7 +931,7 @@ init python:
                 if path[-1] == (0, self.size - 1):
                     break
 
-            # Определяем нужные соединения для клеток пути
+            
             required = dict((cell, set()) for cell in path)
             required[(self.size - 1, 0)].add(3)
             required[(0, self.size - 1)].add(1)
@@ -787,7 +944,7 @@ init python:
                 required[(r1, c1)].add(d)
                 required[(r2, c2)].add(OPPOSITE[d])
 
-            # Заполняем сетку трубами и случайно их вращаем
+            
             self.grid = [[None] * self.size for _ in range(self.size)]
             for r in range(self.size):
                 for c in range(self.size):
@@ -813,12 +970,12 @@ init python:
             return set((d + cell['rot']) % 4 for d in base)
 
         def update_water(self):
-            # Сбрасываем воду
+            
             for r in range(self.size):
                 for c in range(self.size):
                     self.grid[r][c]['water'] = False
 
-            # BFS от старта (4, 0), если у трубы открыт левый вход (3)
+            
             start_r, start_c = self.size - 1, 0
             if 3 in self.get_openings(start_r, start_c):
                 queue = deque([(start_r, start_c)])
@@ -834,7 +991,7 @@ init python:
                                 self.grid[nr][nc]['water'] = True
                                 queue.append((nr, nc))
 
-            # Проверка победы: вода дошла до (0, 4) и открыт правый выход (1)
+            
             end_r, end_c = 0, self.size - 1
             if self.grid[end_r][end_c]['water'] and 1 in self.get_openings(end_r, end_c):
                 self.won = True
@@ -846,7 +1003,7 @@ init python:
             return render
 
         def event(self, ev, x, y, st):
-            # Блокируем клики, если игра уже выиграна или проиграна
+            
             if self.won or self.lost:
                 return
 
@@ -858,7 +1015,7 @@ init python:
                     cell['rot'] = (cell['rot'] + 1) % 4
                     self.moves += 1
 
-                    # Звук клика (если файл есть в game/)
+                    
                     try:
                         if renpy.loadable("click.ogg"):
                             renpy.play("click.ogg")
@@ -867,7 +1024,7 @@ init python:
 
                     self.update_water()
 
-                    # Проверяем проигрыш: ходы кончились, а победа не достигнута
+                    
                     if not self.won and self.moves >= self.max_moves:
                         self.lost = True
 
@@ -885,27 +1042,27 @@ init python:
                     x1, y1 = c * cs, r * cs
                     cx, cy = x1 + half, y1 + half
 
-                    # Фон клетки (подсветка старта и финиша)
+                    
                     bg_color = (56, 56, 56)
                     if r == self.size - 1 and c == 0:
-                        bg_color = (46, 74, 62)    # Зеленоватый оттенок для старта
+                        bg_color = (46, 74, 62)    
                     elif r == 0 and c == self.size - 1:
-                        bg_color = (74, 46, 46)    # Красноватый оттенок для финиша
+                        bg_color = (74, 46, 46)    
 
                     pygame.draw.rect(surface, bg_color, (x1 + 2, y1 + 2, cs - 4, cs - 4), 0)
                     pygame.draw.rect(surface, (85, 85, 85), (x1 + 2, y1 + 2, cs - 4, cs - 4), 2)
 
-                    # Входная и выходная внешние трубы
+                    
                     if r == self.size - 1 and c == 0:
                         pygame.draw.line(surface, (0, 191, 255), (x1, cy), (x1 + 12, cy), 18)
                     if r == 0 and c == self.size - 1:
                         pygame.draw.line(surface, (255, 85, 85), (x1 + cs - 12, cy), (x1 + cs, cy), 18)
 
-                    # Цвет трубы (синий с водой, серый без воды)
+                    
                     pipe_color = (0, 191, 255) if self.grid[r][c]['water'] else (153, 153, 153)
                     openings = self.get_openings(r, c)
 
-                    # Отрисовка сегментов трубы от центра к открытым краям
+                    
                     for d in openings:
                         dr, dc = DIRS[d]
                         ex = cx + dc * half
@@ -913,7 +1070,7 @@ init python:
                         pygame.draw.line(surface, pipe_color, (cx, cy), (ex, ey), 16)
                         pygame.draw.circle(surface, pipe_color, (int(ex), int(ey)), 8)
 
-                    # Фланец в центре соединения
+                    
                     pygame.draw.circle(surface, pipe_color, (cx, cy), 10)
                     pygame.draw.circle(surface, (34, 34, 34), (cx, cy), 10, 2)
 
@@ -923,7 +1080,7 @@ init python:
     pipe_board = PipeBoard(max_moves=25)
 
 
-# Окно с игровым полем
+
 screen plumber():
     modal True
 
@@ -939,7 +1096,7 @@ screen plumber():
             hbox:
                 xfill True
 
-                # Подсвечиваем красным, если осталось 5 ходов или меньше
+                
                 $ moves_color = "#ff5555" if (pipe_board.max_moves - pipe_board.moves) <= 5 else "#eeeeee"
                 text "Ходы: [pipe_board.moves] / [pipe_board.max_moves]" size 24 color moves_color
 
@@ -950,8 +1107,9 @@ screen plumber():
 
             add pipe_board
 
-    # Окно победы
+    
     if pipe_board.won:
+        $ ev_score+=2
         frame:
             xalign 0.5
             yalign 0.5
@@ -963,6 +1121,7 @@ screen plumber():
 
                 text "Победа!" size 36 color "#ffd700" xalign 0.5
                 text "Вода дошла до цели за [pipe_board.moves] ходов!" size 24 color "#eeeeee"
+                
 
                 hbox:
                     spacing 20
@@ -971,11 +1130,10 @@ screen plumber():
                     textbutton "Продолжить":
                         action Return(True)
 
-                    textbutton "Сыграть ещё":
-                        action Function(pipe_board.new_game)
-
-    # Окно проигрыша (если кончились ходы)
+                    
+    
     elif pipe_board.lost:
+        $ ev_score+=0
         frame:
             xalign 0.5
             yalign 0.5
@@ -987,6 +1145,7 @@ screen plumber():
 
                 text "Ходы закончились!" size 36 color "#ff5555" xalign 0.5
                 text "Вы не успели собрать трубопровод за [pipe_board.max_moves] ходов." size 22 color "#eeeeee" xalign 0.5
+                
 
                 hbox:
                     spacing 20
@@ -998,11 +1157,8 @@ screen plumber():
 
 label vodop:
     scene office
-    "Собери трубу от зелёного входа (слева внизу) к красному выходу (справа вверху). У тебя есть 5 ходов."
-
-    # Можно указать любое число ходов для конкретного сюжетного момента
-    $ pipe_board.new_game(max_moves=5)
-    call screen plumber
+    
+    
 
     show companyrep with dissolve
     "После выполнения задачи представитель компании некоторое время изучает получившийся результат."
@@ -1048,19 +1204,19 @@ label day5:
 init python:
     import random
 
-    # Пары: (текст формулы, текст расшифровки)
+    
     MEMO_PAIRS = (
-        (u"E=1.5*kT",              u"полтора кота"),
-        (u"F=pgV",                 u"в рожу"),
-        (u"P=pgh",                 u"рожа-аж"),
-        (u"u=(3kT/m)**0.5",        u"три кота на мясо"),
-        (u"Fa=BIL*sin(a)",         u"Ампер с силой бил синус альфа"),
-        (u"φ=ubl",                 u"вобла"),
-        (u"T=2Пm/qB",              u"два пм-а на куб"),
+        (u"E=1.5*kT",              u"полтора KоTа"),
+        (u"F=pgV",                 u"B PоЖУ"),
+        (u"P=pgh",                 u"РоЖА-АШ"),
+        (u"u=(3kT/m)**0.5",        u"три КоТа на Мясо"),
+        (u"Fa=BIL*sin(a)",         u"Ампер БИЛ сына"),
+        (u"T=2π*(m/k)",                 u"ПиТца с МаКом"),
+        (u"T=2π*(l/g)",              u"ПиТца в ЛуЖе"),
         (u"e=2,718281828",   u"2,7ЛевТолстойЛевТолстой"),
     )
 
-    PAIRS_COUNT = len(MEMO_PAIRS)   # 8
+    PAIRS_COUNT = len(MEMO_PAIRS)   
     GRID_COLS = 4
     GRID_ROWS = 4
     MISMATCH_DELAY = 1.0            # сколько секунд открыта пара несовпавших карточек
@@ -1070,7 +1226,7 @@ init python:
             self.new_game()
 
         def new_game(self):
-            # Колода: каждая карточка несёт номер пары и свою сторону
+            
             deck = []
             for p, (formula, joke) in enumerate(MEMO_PAIRS):
                 deck.append({"pair": p, "side": 0, "text": formula})
@@ -1083,9 +1239,9 @@ init python:
                 item["matched"] = False
                 self.cards.append(item)
 
-            self.first = None       # индекс первой открытой карточки
-            self.mismatch = None    # индексы несовпавшей пары
-            self.locked = False     # блокировка кликов, пока открыта несовпавшая пара
+            self.first = None       
+            self.mismatch = None    
+            self.locked = False     
             self.moves = 0
             self.matched_pairs = 0
             self.won = False
@@ -1100,13 +1256,13 @@ init python:
             card["flipped"] = True
 
             if self.first is None:
-                # Это первая из пары открытая карточка
+                
                 self.first = idx
             else:
                 self.moves += 1
                 other = self.cards[self.first]
                 if other["pair"] == card["pair"] and other["side"] != card["side"]:
-                    # Совпало (формула со своей расшифровкой) — остаются открытыми
+                    
                     other["matched"] = True
                     card["matched"] = True
                     self.matched_pairs += 1
@@ -1114,7 +1270,7 @@ init python:
                     if self.matched_pairs == PAIRS_COUNT:
                         self.won = True
                 else:
-                    # Не совпало — запоминаем пару и даём игроку рассмотреть её
+                    
                     self.mismatch = (self.first, idx)
                     self.first = None
                     self.locked = True
@@ -1122,7 +1278,7 @@ init python:
             renpy.restart_interaction()
 
         def hide_mismatch(self):
-            # Вызывается таймером экрана: закрываем несовпавшую пару
+            
             if self.mismatch is not None:
                 for i in self.mismatch:
                     self.cards[i]["flipped"] = False
@@ -1157,7 +1313,7 @@ screen memo():
                     text_size 18
                     action Function(memo_game.new_game)
 
-            # Поле 4x4
+            
             grid GRID_COLS GRID_ROWS:
                 spacing 10
 
@@ -1165,9 +1321,9 @@ screen memo():
                     $ card = memo_game.cards[idx]
 
                     if card["matched"] or card["flipped"]:
-                        # ЛИЦО КАРТОЧКИ
+                        
                         if card["side"] == 0:
-                            # Сторона с формулой
+                            
                             button:
                                 xysize (280, 150)
                                 background "#3a3a3a"
@@ -1182,7 +1338,7 @@ screen memo():
                                     xalign 0.5
                                     yalign 0.5
                         else:
-                            # Сторона с расшифровкой
+                            
                             button:
                                 xysize (280, 150)
                                 background "#3a3a3a"
@@ -1197,13 +1353,13 @@ screen memo():
                                     yalign 0.5
                                     xmaximum 260
                     else:
-                        # РУБАШКА КАРТОЧКИ
+                        
                         button:
                             xysize (280, 150)
                             background "#2d2d2d"
                             hover_background "#444444"
 
-                            text "Ф":
+                            text "?":
                                 size 40
                                 bold True
                                 color "#555555"
@@ -1212,13 +1368,14 @@ screen memo():
 
                             action Function(memo_game.open_card, idx)
 
-            # Таймер: закрывает несовпавшую пару через MISMATCH_DELAY секунд
+            
             if memo_game.locked:
                 timer MISMATCH_DELAY action Function(memo_game.hide_mismatch)
 
-    # Экран победы
-    # Экран победы — рисуется только когда memo_game.won == True
+    
+    
     if memo_game.won:
+        $ maks_score+=2
         frame:
             xalign 0.5
             yalign 0.5
@@ -1243,9 +1400,7 @@ screen memo():
                     spacing 20
                     xalign 0.5
 
-                    textbutton "Играть заново":
-                        text_size 20
-                        action Function(memo_game.new_game)
+                    
 
                     textbutton "Далее":
                         text_size 20
@@ -1287,7 +1442,6 @@ label day6:
     "Воистину удивительный человек."
     "После занятия я решаю подойти к нему."
     show grigoriy with dissolve
-    grig "Здравствуйте."
     you "Здравствуйте."
     grig "А, здравствуйте. Мы ведь уже встречались?"
     you "Да, в коридоре на прошлой неделе."
@@ -1304,13 +1458,13 @@ label day6:
     jump math
 
 label math:
-    # 1. Экран для отображения условия задачи, чтобы игрок видел его во время ввода
+    
     screen math_puzzle():
         frame:
             xalign 0.5
             yalign 0.15
             padding (30, 20)
-            background "#000000cc" # Полупрозрачный черный фон
+            background "#000000cc" 
         
             vbox:
                 spacing 10
@@ -1324,17 +1478,17 @@ label math:
                 text "• I = 1   • V = 5   • X = 10" size 22
                 text "• XX = 20 • L = 50  • C = 100" size 22
 
-    # 2. Метка (лейбл) самой мини-игры, которую можно вызвать из любого места сюжета
+    
     label math_game:
-        # Правильные ответы: 5a + 6b = 55 и 15a + 20b = 150
+        
         $ correct_a = 20.0
         $ correct_b = -7.5
 
-        # Показываем экран с задачей поверх игры
+        
         show screen math_puzzle
 
         while True:
-        # Запрашиваем ввод у игрока (разрешаем только цифры, минус, точку и запятую)
+        
             $ user_a = renpy.input("Введите значение a:", allow="0123456789.-,").strip().replace(",", ".")
             $ user_b = renpy.input("Введите значение b:", allow="0123456789.-,").strip().replace(",", ".")
 
@@ -1342,7 +1496,7 @@ label math:
                 try:
                     a = float(user_a)
                     b = float(user_b)
-                    # Проверяем с небольшой погрешностью для дробных чисел
+                    
                     if abs(a - correct_a) < 1e-5 and abs(b - correct_b) < 1e-5:
                         result = "win"
                     else:
@@ -1350,8 +1504,9 @@ label math:
                 except ValueError:
                     result = "error"
 
-            # Реакция игры на результат проверки
+            
             if result == "win":
+                $ grig_score+=1
                 hide screen math_puzzle # Прячем условие задачи
                 "Верно! Отличная работа! (a = 20, b = -7.5)"
                 jump day6_con # Возвращаемся обратно в основной сюжет
@@ -1396,29 +1551,13 @@ label day7:
 
 
 
-# ---------------------------------------------------------------------------
-# МИНИ-ИГРА 6. «СПРОЕКТИРУЙ ЭКСПЕРИМЕНТ»
-# День 7. Исследовательская работа.
-#
-# Подключение:
-# 1. Сохранить этот файл в папку game/ проекта Ren'Py.
-# 2. В основном script.rpy удалить старую заглушку:
-#       label minigame_experiment:
-#           ...
-# 3. Вызов из сюжета оставить без изменений:
-#       call minigame_experiment
-#
-# Игра не требует внешних изображений и дополнительных библиотек.
-# ---------------------------------------------------------------------------
+
 
 default experiment_score = 0
 default experiment_answers = {}
 default experiment_result_level = "unknown"
 
 
-# Экран выбора карточки.
-# Каждая карточка — кнопка с текстом. После выбора игрок возвращается
-# в сюжетную последовательность, а выбранный вариант записывается в словарь.
 
 screen experiment_choice(title, prompt, options, selected_text=""):
 
@@ -1598,9 +1737,7 @@ screen experiment_results_table():
                 action Return()
 
 
-# ---------------------------------------------------------------------------
-# СЮЖЕТНАЯ ЧАСТЬ МИНИ-ИГРЫ
-# ---------------------------------------------------------------------------
+
 
 label experiment:
 
@@ -1613,9 +1750,7 @@ label experiment:
     "Нужно собрать план исследования: сформулировать гипотезу, определить группы, выбрать показатели и способ сравнения."
     "После этого откроются результаты эксперимента, которые предстоит интерпретировать."
 
-    # -----------------------------------------------------------------------
-    # ЭТАП 1. ГИПОТЕЗА
-    # -----------------------------------------------------------------------
+    
 
     $ experiment_choice_1 = renpy.call_screen(
         "experiment_choice",
@@ -1638,9 +1773,7 @@ label experiment:
         "Такая формулировка не позволяет корректно проверить влияние дополнительных занятий."
         "Нам нужна конкретная гипотеза, которую можно проверить на данных."
 
-    # -----------------------------------------------------------------------
-    # ЭТАП 2. ФОРМИРОВАНИЕ ГРУПП
-    # -----------------------------------------------------------------------
+    
 
     $ experiment_choice_2 = renpy.call_screen(
         "experiment_choice",
@@ -1663,9 +1796,7 @@ label experiment:
         "При таком формировании групп они могут изначально отличаться по важным характеристикам."
         "Например, мотивация и начальный уровень знаний способны повлиять на итоговые результаты."
 
-    # -----------------------------------------------------------------------
-    # ЭТАП 3. ИЗМЕРЯЕМЫЕ ПОКАЗАТЕЛИ
-    # -----------------------------------------------------------------------
+    
 
     $ experiment_choice_3 = renpy.call_screen(
         "experiment_choice",
@@ -1688,9 +1819,7 @@ label experiment:
         "Этот показатель не позволяет напрямую оценить изменение знаний."
         "Нужна единая измеримая метрика, применяемая к обеим группам."
 
-    # -----------------------------------------------------------------------
-    # ЭТАП 4. СПОСОБ СРАВНЕНИЯ
-    # -----------------------------------------------------------------------
+    
 
     $ experiment_choice_4 = renpy.call_screen(
         "experiment_choice",
@@ -1713,10 +1842,7 @@ label experiment:
         "Такое сравнение может дать искажённую картину."
         "Важно учитывать не только итоговые результаты, но и то, с какого уровня начинали участники."
 
-    # -----------------------------------------------------------------------
-    # ПОДВЕДЕНИЕ ИТОГОВ ПЛАНИРОВАНИЯ
-    # -----------------------------------------------------------------------
-
+    
     if experiment_score == 4:
         $ experiment_result_level = "excellent"
         call screen experiment_feedback(
@@ -1736,9 +1862,7 @@ label experiment:
             "В плане есть существенные недочёты. Самое время посмотреть, как они могут повлиять на интерпретацию данных."
         )
 
-    # -----------------------------------------------------------------------
-    # ЭТАП 5. РЕЗУЛЬТАТЫ ЭКСПЕРИМЕНТА
-    # -----------------------------------------------------------------------
+    
 
     "После завершения планирования мне показывают результаты условного исследования."
     call screen experiment_results_table
@@ -1747,9 +1871,7 @@ label experiment:
     "Но я замечаю одну деталь: группы сформировались по желанию студентов, а не случайным распределением."
     "Возможно, те, кто записался на дополнительные занятия, изначально были более мотивированы или имели другие особенности."
 
-    # -----------------------------------------------------------------------
-    # ЭТАП 6. ИНТЕРПРЕТАЦИЯ
-    # -----------------------------------------------------------------------
+    
 
     $ experiment_choice_5 = renpy.call_screen(
         "experiment_choice",
@@ -1777,11 +1899,10 @@ label experiment:
             "Данные показывают, что группа дополнительных занятий улучшила результат сильнее. Но участники сами выбирали, посещать занятия или нет. Поэтому группы могли отличаться ещё до начала исследования, и мы не можем однозначно приписать разницу именно занятиям."
         )
 
-    # -----------------------------------------------------------------------
-    # ФИНАЛ МИНИ-ИГРЫ
-    # -----------------------------------------------------------------------
+    
 
     if experiment_score == 5:
+        $ grig_score+=1
         "Я внимательно проверяю все этапы. Похоже, план исследования получился довольно убедительным."
     elif experiment_score >= 3:
         "Я ещё раз просматриваю свои решения. Некоторые моменты стоило продумать внимательнее, но общая логика исследования теперь понятна."
@@ -1809,12 +1930,62 @@ label ending:
     "И Григорий Яковлевич, для которого математика существует сама по себе, независимо от того, где и когда её удастся применить."
     "У каждого из них свой подход. И, пожалуй, каждый по-своему прав."
 
-    "До защиты диплома остаётся совсем немного времени. Впереди ещё много решений, но теперь у меня хотя бы есть некоторое представление о том, что меня ждёт."
-    "Я выбираю профессию, связанную с математической статистикой и анализом данных."
-    "Внутри неё открывается множество возможных путей — от чистых исследований до прикладных задач, от работы с моделями до объяснения результатов другим людям."
-    "Возможно, окончательного ответа у меня пока нет."
-    "Но теперь я хотя бы знаю, с чего начать."
+    $ all_score = ev_score+maks_score+grig_score+vlad_score
+    if all_score == 8:
+        jump harem_root
+    elif max(vlad_score, ev_score, grig_score, maks_score) == vlad_score and vlad_score == 2:
+        jump vlad_end
+    elif max(vlad_score, ev_score, grig_score, maks_score) == maks_score and maks_score == 2:
+        jump maks_end
+    elif max(vlad_score, ev_score, grig_score, maks_score) == grig_score and grig_score == 2:
+        jump grig_end
+    elif all_score == 0:
+        jump bad_root
+    elif max(vlad_score, ev_score, grig_score, maks_score) == ev_score and ev_score == 2:
+        jump ev_end
 
+
+
+label harem_root:
+    "За эту неделю я осознал всю силу математики, поэтому теперь знаю..."
+    "Что свяжу свою жизнь со всеми направлениями этой замечательной науки."
+    "А помогут мне мои преподаватели!"
     scene black with Dissolve(3.0)
-    "КОНЕЦ"
+    "КОНЕЦ. ИСТИННАЯ КОНЦОВКА."
+    return
+
+label vlad_end:
+    "За эту неделю я полностью осознал свою любовь к статитике."
+    "Именно поэтому я пойду в аспирантуру к Владимиру Ивановичу!"
+    scene black with Dissolve(3.0)
+    "КОНЕЦ. КОНЦОВКА ВЛАДИМИРА ИВАНОВИЧА."
+    return
+
+label maks_end:
+    "За эту неделю я осознал важность массовой обработки данных."
+    "Именно поэтому я стану аспирантом на кафедре машинного обучения!"
+    scene black with Dissolve(3.0)
+    "КОНЕЦ. КОНЦОВКА МАКСИМА ДМИТРИЕВИЧА."
+    return
+
+label grig_end:
+    "За эту неделю я осознал, насколько ещё не познан мир."
+    "Осознал, насколько важна математика."
+    "Поэтому направлением поступления я выберу кафедру Григория Яковлевича!"
+    scene black with Dissolve(3.0)
+    "КОНЕЦ. КОНЦОВКА ГРИГОРИЯ ЯКОВЛЕВИЧА."
+    return
+
+label bad_root:
+    "Эта неделя показала низкий уровень моих знаний..."
+    "Наверное, мне не стоило поступать в технический ВУЗ..."
+    scene black with Dissolve(3.0)
+    "КОНЕЦ. ПЛОХАЯ КОНЦОВКА."
+    return
+
+label ev_end:
+    "Эта неделя показала важность использования математики в реальных задач."
+    "Поэтому я свяжу свою жизнь с экономикой!"
+    scene black with Dissolve(3.0)
+    "КОНЕЦ. КОНЦОВКА ЕВГЕНИЯ ГЕОРГИЕВИЧА."
     return
