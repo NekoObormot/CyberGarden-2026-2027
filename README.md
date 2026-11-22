@@ -10,3 +10,8 @@ Konni Group
 
 Требуемые для запуска библиотеки:
 Ren'Py 8.6.1 с устанавливаемым в движке расширением WEB
+Библиотеки:
+- random
+- pygame
+- collections
+- tkinter
