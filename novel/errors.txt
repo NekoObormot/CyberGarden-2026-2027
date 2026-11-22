@@ -1,0 +1,10 @@
+﻿I'm sorry, but errors were detected in your script. Please correct the
+errors listed below, and try again.
+
+
+File "game/script.rpy", line 1367: unindent does not match any outer indentation level
+    show grigoriy with dissolve
+        ^
+
+Ren'Py Version: Ren'Py 8.6.1.26111705
+Sat Nov 21 22:53:07 2026

@@ -1,0 +1,139 @@
+﻿I'm sorry, but an uncaught exception occurred.
+
+While running game code:
+renpy.game.QuitException
+
+During handling of the above exception, another exception occurred:
+
+PermissionError: [WinError 32] Процесс не может получить доступ к файлу, так как этот файл занят другим процессом: 'D:\\Novel\\novel\\game\\saves\\persistent' -> 'D:\\Novel\\novel\\game\\saves\\persistent.df813b7407614affa9f761e4d6484754.old'
+
+-- Full Traceback ------------------------------------------------------------
+
+Traceback (most recent call last):
+  File "renpy/main.py", line 596, in main
+    run(restart)
+    ~~~^^^^^^^^^
+  File "renpy/main.py", line 132, in run
+    renpy.execution.run_context(True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "renpy/execution.py", line 1087, in run_context
+    context.run()
+    ~~~~~~~~~~~^^
+  File "renpy/common/00start.rpy", line 301, in script
+    python:
+  File "renpy/ast.py", line 1229, in execute
+    renpy.python.py_exec_bytecode(self.code.bytecode, self.hide, store=self.store)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/python.py", line 1262, in py_exec_bytecode
+    exec(bytecode, globals, locals)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/common/00start.rpy", line 303, in <module>
+    renpy.call_in_new_context(_restart[2])
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "renpy/game.py", line 345, in call_in_new_context
+    return renpy.execution.run_context(False)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "renpy/execution.py", line 1087, in run_context
+    context.run()
+    ~~~~~~~~~~~^^
+  File "renpy/common/_layout/screen_main_menu.rpym", line 28, in script
+    python hide:
+  File "renpy/ast.py", line 1229, in execute
+    renpy.python.py_exec_bytecode(self.code.bytecode, self.hide, store=self.store)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/python.py", line 1262, in py_exec_bytecode
+    exec(bytecode, globals, locals)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/common/_layout/screen_main_menu.rpym", line 28, in <module>
+    python hide:
+  File "renpy/common/_layout/screen_main_menu.rpym", line 35, in _execute_python_hide
+    ui.interact()
+    ~~~~~~~~~~~^^
+  File "renpy/ui.py", line 312, in interact
+    rv = renpy.game.interface.interact(roll_forward=roll_forward, **kwargs)
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/display/core.py", line 2281, in interact
+    repeat, rv = self.interact_core(
+                 ~~~~~~~~~~~~~~~~~~^
+        preloads=preloads,
+        ^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "renpy/display/core.py", line 3236, in interact_core
+    self.quit_event()
+    ~~~~~~~~~~~~~~~^^
+  File "renpy/display/core.py", line 1780, in quit_event
+    renpy.display.behavior.run(renpy.config.quit_action)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/display/behavior.py", line 411, in run
+    return action(*args, **kwargs)
+           ~~~~~~^^^^^^^^^^^^^^^^^
+  File "renpy/common/00action_menu.rpy", line 274, in __call__
+    renpy.quit(save=True)
+    ~~~~~~~~~~^^^^^^^^^^^
+  File "renpy/exports/restartexports.py", line 135, in quit
+    raise renpy.game.QuitException(relaunch=relaunch, status=status)
+renpy.game.QuitException
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "renpy/bootstrap.py", line 554, in bootstrap
+    renpy.main.main()
+    ~~~~~~~~~~~~~~~^^
+  File "renpy/main.py", line 611, in main
+    renpy.persistent.update(True)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "renpy/persistent.py", line 447, in update
+    return renpy.asynctask.run_sync(update_task(force_save, background=False))
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/asynctask.py", line 274, in run_sync
+    next(generator)
+    ~~~~^^^^^^^^^^^
+  File "renpy/persistent.py", line 485, in update_task
+    yield from save_task(background=background)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/persistent.py", line 544, in save_task
+    renpy.loadsave.location.save_persistent(compressed)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "renpy/savelocation.py", line 650, in save_persistent
+    result = submit_persistent_write(lambda: self._save_persistent(data), background)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/savelocation.py", line 727, in submit_persistent_write
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "lib/python3.12/concurrent/futures/_base.py", line 456, in result
+  File "lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+  File "renpy/savelocation.py", line 754, in run_scan_thread
+    result = write()
+             ~~~~~^^
+  File "renpy/savelocation.py", line 650, in <lambda>
+    result = submit_persistent_write(lambda: self._save_persistent(data), background)
+                                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^             
+  File "renpy/savelocation.py", line 658, in _save_persistent
+    saved_mtime = l.save_persistent(data)
+                  ~~~~~~~~~~~~~~~~~^^^^^^
+  File "renpy/savelocation.py", line 436, in save_persistent
+    result = submit_persistent_write(lambda: self._save_persistent(data), background)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/savelocation.py", line 708, in submit_persistent_write
+    return write()
+           ~~~~~^^
+  File "renpy/savelocation.py", line 436, in <lambda>
+    result = submit_persistent_write(lambda: self._save_persistent(data), background)
+                                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^             
+  File "renpy/savelocation.py", line 458, in _save_persistent
+    safe_rename(fn_new, fn, keep_from=True)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/loadsave.py", line 139, in safe_rename
+    os.replace(to_filename, dot_old)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 32] Процесс не может получить доступ к файлу, так как этот файл занят другим процессом: 'D:\\Novel\\novel\\game\\saves\\persistent' -> 'D:\\Novel\\novel\\game\\saves\\persistent.df813b7407614affa9f761e4d6484754.old'
+
+Windows-11-10.0.26200-SP0 AMD64
+Ren'Py 8.6.1.26111705
+novel 1.0
+Sat Nov 21 23:18:31 2026
